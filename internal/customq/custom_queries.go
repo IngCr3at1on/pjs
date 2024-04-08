@@ -95,12 +95,8 @@ func (qs *queries) loadCustomQuery(filename string, byt []byte, transposeImpl fu
 			Use:           q.Use,
 			Long:          q.Description,
 			SilenceErrors: true,
-			PreRunE: func(cmd *cobra.Command, args []string) error {
-				if len(args) != len(q.Args) {
-					return cmd.Usage()
-				}
-				return nil
-			},
+			// FIXME: would prefer if this showed the full usage instead of just an error message.
+			PreRunE: cobra.ExactArgs(len(q.Args)),
 			RunE: func(cmd *cobra.Command, args []string) error {
 				m := make(map[string]string)
 				for n, argKey := range q.Args {

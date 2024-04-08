@@ -6,15 +6,14 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 
 	"github.com/ingcr3at1on/pjs"
+	"github.com/ingcr3at1on/pjs/cmd/internal"
 	"github.com/ingcr3at1on/pjs/internal/customq"
-	"github.com/ingcr3at1on/pjs/internal/env"
 	"github.com/ingcr3at1on/x/sigctx"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
@@ -67,11 +66,10 @@ func initImpl() error {
 
 func main() {
 	if err := sigctx.StartWith(root.ExecuteContext); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 }
-
-type output map[string]interface{}
 
 func transpose(cmd *cobra.Command, _ []string) error {
 	byt, err := io.ReadAll(os.Stdin)
@@ -86,23 +84,15 @@ func transposeImpl(ctx context.Context, query string) error {
 	var dsn string
 	if *dsnF != `` {
 		dsn = *dsnF
-	} else {
-		dsn = env.ParseAlternateSettings()
 	}
 
-	pc, err := pgxpool.ParseConfig(dsn)
+	pool, err := internal.NewPool(ctx, dsn)
 	if err != nil {
-		return fmt.Errorf("pgxpool.ParseConfig -- %w", err)
-	}
-	pc.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeCacheDescribe
-	pc.ConnConfig.DescriptionCacheCapacity = 1024
-
-	pool, err := pgxpool.NewWithConfig(ctx, pc)
-	if err != nil {
-		return fmt.Errorf("pgxpool.ConnectConfig -- %w", err)
+		return err
 	}
 	defer pool.Close()
 
+	type output map[string]interface{}
 	if err = pjs.Transpose(ctx, pool, query, func(receivers []pjs.Receiver) error {
 		out := make(output)
 		for _, rec := range receivers {
