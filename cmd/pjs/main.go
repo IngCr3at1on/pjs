@@ -100,7 +100,7 @@ func transposeImpl(ctx context.Context, query string) error {
 			if *typesF {
 				key = fmt.Sprintf("%s (%T, %d)", key, rec.Val, rec.DataTypeOID)
 			}
-			out[key] = addToOutput(rec)
+			out[key] = rec.Interface()
 		}
 
 		byt, err := json.Marshal(out)
