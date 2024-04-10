@@ -5,16 +5,17 @@ go 1.22.0
 require (
 	github.com/charmbracelet/bubbles v0.18.0
 	github.com/charmbracelet/bubbletea v0.25.0
+	github.com/charmbracelet/huh v0.3.0
 	github.com/charmbracelet/lipgloss v0.10.0
 	github.com/hashicorp/hcl/v2 v2.20.0
-	github.com/ingcr3at1on/x/lazyfstools v0.0.0-20240307045535-c5ea5d38801d
-	github.com/ingcr3at1on/x/sigctx v0.0.0-20221019224912-6e59f08a3c34
+	github.com/ingcr3at1on/x/lazyfstools v0.0.0-20240312223305-87ee7d183de1
+	github.com/ingcr3at1on/x/sigctx v0.0.0-20240312223305-87ee7d183de1
 	github.com/itchyny/gojq v0.12.15
 	github.com/jackc/pgtype v1.14.2
 	github.com/jackc/pgx/v5 v5.5.4
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.9.0
 )
 
 require (
@@ -23,6 +24,7 @@ require (
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
+	github.com/catppuccin/go v0.2.0 // indirect
 	github.com/containerd/console v1.0.4-0.20230313162750-1ae8d489ac81 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/google/go-cmp v0.5.4 // indirect
@@ -38,7 +40,7 @@ require (
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mitchellh/go-wordwrap v0.0.0-20150314170334-ad45545899c7 // indirect
-	github.com/muesli/ansi v0.0.0-20211018074035-2e021307bc4b // indirect
+	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/muesli/termenv v0.15.2 // indirect

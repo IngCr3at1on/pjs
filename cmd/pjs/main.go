@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -44,7 +43,8 @@ func init() {
 	typesF = flags.BoolP(typesFK, `t`, false, `show types`)
 
 	if err := initImpl(); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 }
 
@@ -65,7 +65,7 @@ func initImpl() error {
 }
 
 func main() {
-	if err := sigctx.StartWith(root.ExecuteContext); err != nil {
+	if err := sigctx.With(root.ExecuteContext); err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}

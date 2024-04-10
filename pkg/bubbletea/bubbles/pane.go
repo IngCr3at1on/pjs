@@ -17,6 +17,8 @@ type OutputPane struct {
 	placeholder string
 }
 
+var _ tea.Model = new(OutputPane)
+
 func NewOutputPane(calcWidth, calcHeight util.CalcF, placeholder string) *OutputPane {
 	return &OutputPane{
 		calcWidth:   calcWidth,
@@ -25,7 +27,11 @@ func NewOutputPane(calcWidth, calcHeight util.CalcF, placeholder string) *Output
 	}
 }
 
-func (p *OutputPane) Update(message tea.Msg) (*OutputPane, tea.Cmd) {
+func (p *OutputPane) Init() tea.Cmd {
+	return nil
+}
+
+func (p *OutputPane) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := message.(type) {
 	case tea.WindowSizeMsg:
 		width := p.calcWidth(msg.Width)

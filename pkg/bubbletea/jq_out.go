@@ -1,4 +1,4 @@
-package jq
+package bubbletea
 
 import (
 	"strings"
@@ -10,7 +10,7 @@ import (
 	"github.com/itchyny/gojq"
 )
 
-type output struct {
+type jqOut struct {
 	*bubbles.OutputPane
 
 	mux  sync.RWMutex
@@ -18,33 +18,50 @@ type output struct {
 	data map[string]any
 }
 
-func newOut(placeholder string) *output {
-	return &output{
+var _ tea.Model = (*jqOut)(nil)
+
+func newJqOut(placeholder string) *jqOut {
+	return &jqOut{
 		OutputPane: bubbles.NewOutputPane(util.HalfWidth, jqOutHeight, placeholder),
 	}
 }
 
-func (p *output) Update(message tea.Msg) tea.Cmd {
-	p.marshal()
-
-	var cmd tea.Cmd
-	p.OutputPane, cmd = p.OutputPane.Update(message)
-	return cmd
+func (p *jqOut) Init() tea.Cmd {
+	return nil
 }
 
-func (p *output) SetData(data map[string]any) {
+func (p *jqOut) Update(message tea.Msg) (tea.Model, tea.Cmd) {
+	p.marshal()
+
+	var (
+		cmd  tea.Cmd
+		pane tea.Model
+	)
+	pane, cmd = p.OutputPane.Update(message)
+	if op, ok := pane.(*bubbles.OutputPane); ok {
+		p.OutputPane = op
+	}
+
+	return p, cmd
+}
+
+func (p *jqOut) View() string {
+	return p.OutputPane.View()
+}
+
+func (p *jqOut) SetData(data map[string]any) {
 	p.mux.Lock()
 	p.data = data
 	p.mux.Unlock()
 }
 
-func (p *output) setExp(exp *gojq.Query) {
+func (p *jqOut) setExp(exp *gojq.Query) {
 	p.mux.Lock()
 	p.exp = exp
 	p.mux.Unlock()
 }
 
-func (p *output) marshal() {
+func (p *jqOut) marshal() {
 	p.mux.RLock()
 	if p.data != nil {
 		if p.exp != nil {
@@ -61,7 +78,7 @@ func (p *output) marshal() {
 	p.mux.RUnlock()
 }
 
-func (p *output) marshalQuery() {
+func (p *jqOut) marshalQuery() {
 	iter := p.exp.Run(p.data)
 	var content []string
 	for {

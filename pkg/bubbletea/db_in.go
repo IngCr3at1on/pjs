@@ -1,4 +1,4 @@
-package db
+package bubbletea
 
 import (
 	"context"
@@ -14,30 +14,34 @@ import (
 )
 
 type (
-	keymap = struct {
-		doQuery, clearInput key.Binding
+	dbKeymap = struct {
+		doQuery, clear key.Binding
 	}
 
-	in struct {
+	dbIn struct {
+		ctx    context.Context
 		ready  atomic.Bool
 		m      textarea.Model
-		keymap keymap
+		keymap dbKeymap
 
 		pool *pgxpool.Pool
-		out  *output
+		out  *dbOut
 	}
 )
 
-func newIn(pool *pgxpool.Pool, out *output) *in {
-	p := in{
-		m: textarea.New(),
-		keymap: keymap{
+var _ tea.Model = new(dbIn)
+
+func newDbIn(ctx context.Context, pool *pgxpool.Pool, out *dbOut) *dbIn {
+	p := dbIn{
+		ctx: ctx,
+		m:   textarea.New(),
+		keymap: dbKeymap{
 			doQuery: key.NewBinding(
 				key.WithKeys(tea.KeyCtrlS.String()),
 				key.WithHelp("ctrl+s", "send psql query")),
-			clearInput: key.NewBinding(
+			clear: key.NewBinding(
 				key.WithKeys(tea.KeyCtrlC.String()),
-				key.WithHelp("ctrl+c", "clear query input")),
+				key.WithHelp("ctrl+c", "clear query")),
 		},
 		pool: pool,
 		out:  out,
@@ -51,11 +55,11 @@ func newIn(pool *pgxpool.Pool, out *output) *in {
 	return &p
 }
 
-func (*in) Init() tea.Cmd {
+func (*dbIn) Init() tea.Cmd {
 	return textarea.Blink
 }
 
-func (p *in) Update(message tea.Msg) tea.Cmd {
+func (p *dbIn) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		cmd  tea.Cmd
 		cmds []tea.Cmd
@@ -71,10 +75,10 @@ func (p *in) Update(message tea.Msg) tea.Cmd {
 	p.m, cmd = p.m.Update(message)
 	cmds = append(cmds, cmd)
 
-	return tea.Batch(cmds...)
+	return p, tea.Batch(cmds...)
 }
 
-func (p *in) handleSizeMessage(msg tea.WindowSizeMsg) {
+func (p *dbIn) handleSizeMessage(msg tea.WindowSizeMsg) {
 	p.m.SetWidth(util.HalfWidth(msg.Width))
 	p.m.SetHeight(dbInHeight(msg.Height))
 
@@ -84,33 +88,45 @@ func (p *in) handleSizeMessage(msg tea.WindowSizeMsg) {
 	}
 }
 
-func (p *in) handleKeyMessage(msg tea.KeyMsg) {
+func (p *dbIn) handleKeyMessage(msg tea.KeyMsg) {
 	switch {
 	case key.Matches(msg, p.keymap.doQuery):
-		p.transpose(p.m.Value())
-	case key.Matches(msg, p.keymap.clearInput):
+		if err := p.transpose(p.m.Value()); err != nil {
+			p.out.SetContent(err.Error())
+		}
+	case key.Matches(msg, p.keymap.clear):
 		p.m.Reset()
+		p.out.reset()
 	}
 }
 
-func (p *in) transpose(query string) error {
+func (p *dbIn) transpose(query string) error {
 	// FIXME: get the context from the application...
 	return pjs.Transpose(context.Background(), p.pool, query, p.out.transpose)
 }
 
-func (p *in) View() string {
+func (p *dbIn) View() string {
+	//var b strings.Builder
+	//b.WriteString(p.m.View() + "\n")
+	//
+	//h := p.keymap.doQuery.Help()
+	//b.WriteString(h.Key + " " + h.Desc + ", ")
+	//
+	//p.keymap.clear.Help()
+	//b.WriteString(h.Key + " " + h.Desc)
+	//return b.String()
 	return p.m.View()
 }
 
-func (p *in) Focus() tea.Cmd {
+func (p *dbIn) Focus() tea.Cmd {
 	return p.m.Focus()
 }
 
-func (p *in) Blur() {
+func (p *dbIn) Blur() {
 	p.m.Blur()
 }
 
-func (p *in) Focused() bool {
+func (p *dbIn) Focused() bool {
 	return p.m.Focused()
 }
 

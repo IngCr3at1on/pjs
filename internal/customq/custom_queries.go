@@ -95,8 +95,13 @@ func (qs *queries) loadCustomQuery(filename string, byt []byte, transposeImpl fu
 			Use:           q.Use,
 			Long:          q.Description,
 			SilenceErrors: true,
-			// FIXME: would prefer if this showed the full usage instead of just an error message.
-			PreRunE: cobra.ExactArgs(len(q.Args)),
+			PreRunE: func(cmd *cobra.Command, args []string) error {
+				if err := cobra.ExactArgs(len(q.Args))(cmd, args); err != nil {
+					cmd.Usage()
+					return err
+				}
+				return nil
+			},
 			RunE: func(cmd *cobra.Command, args []string) error {
 				m := make(map[string]string)
 				for n, argKey := range q.Args {

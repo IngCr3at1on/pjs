@@ -1,4 +1,4 @@
-package jq
+package bubbletea
 
 import (
 	"sync/atomic"
@@ -9,14 +9,14 @@ import (
 	"github.com/itchyny/gojq"
 )
 
-type in struct {
+type jqIn struct {
 	ready atomic.Bool
 	m     textinput.Model
-	out   *output
+	out   *jqOut
 }
 
-func newIn(out *output) *in {
-	p := in{
+func newJqIn(out *jqOut) *jqIn {
+	p := jqIn{
 		m:   textinput.New(),
 		out: out,
 	}
@@ -26,11 +26,11 @@ func newIn(out *output) *in {
 	return &p
 }
 
-func (*in) Init() tea.Cmd {
+func (*jqIn) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (p *in) Update(message tea.Msg) tea.Cmd {
+func (p *jqIn) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := message.(type) {
 	case tea.WindowSizeMsg:
 		p.m.Width = util.HalfWidth(msg.Width)
@@ -50,21 +50,21 @@ func (p *in) Update(message tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	p.m, cmd = p.m.Update(message)
 
-	return cmd
+	return p, cmd
 }
 
-func (p *in) View() string {
+func (p *jqIn) View() string {
 	return p.m.View()
 }
 
-func (p *in) Focus() tea.Cmd {
+func (p *jqIn) Focus() tea.Cmd {
 	return p.m.Focus()
 }
 
-func (p *in) Blur() {
+func (p *jqIn) Blur() {
 	p.m.Blur()
 }
 
-func (p *in) Focused() bool {
+func (p *jqIn) Focused() bool {
 	return p.m.Focused()
 }

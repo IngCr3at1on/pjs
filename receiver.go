@@ -4,12 +4,14 @@ import (
 	"github.com/jackc/pgtype"
 )
 
-// Receiver is a value receiver when reading postgres data.
-type Receiver struct {
-	Name        string
-	DataTypeOID uint32
-	Val         any
-}
+type (
+	// Receiver is a value receiver when reading postgres data.
+	Receiver struct {
+		Name        string
+		DataTypeOID uint32
+		Val         any
+	}
+)
 
 func (r Receiver) Interface() any {
 	switch r.DataTypeOID {

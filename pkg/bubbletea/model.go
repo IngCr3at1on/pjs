@@ -1,11 +1,11 @@
 package bubbletea
 
 import (
+	"context"
+
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ingcr3at1on/pjs/pkg/bubbletea/bubbles/db"
-	"github.com/ingcr3at1on/pjs/pkg/bubbletea/bubbles/jq"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -15,16 +15,16 @@ type (
 	}
 
 	model struct {
-		db     db.Panel
-		jq     *jq.Panel
+		db     dbPanel
+		jq     *jqPanel
 		keymap keymap
 	}
 )
 
 var _ tea.Model = new(model)
 
-func New(pool *pgxpool.Pool, showTypes bool) model {
-	jqPanel := jq.New()
+func New(ctx context.Context, pool *pgxpool.Pool, showTypes bool) model {
+	jqPanel := newJqPanel()
 
 	m := model{
 		keymap: keymap{
@@ -35,7 +35,7 @@ func New(pool *pgxpool.Pool, showTypes bool) model {
 				key.WithKeys("esc"),
 				key.WithHelp("esc", "quit")),
 		},
-		db: db.New(pool, showTypes, jqPanel.SetData),
+		db: newDBPanel(ctx, pool, showTypes, jqPanel.SetData),
 		jq: jqPanel,
 	}
 
@@ -71,10 +71,18 @@ func (m model) Update(message tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	m.db, cmd = m.db.Update(message)
+	var db tea.Model
+	db, cmd = m.db.Update(message)
+	if panel, ok := db.(dbPanel); ok {
+		m.db = panel
+	}
 	cmds = append(cmds, cmd)
 
-	cmd = m.jq.Update(message)
+	var jq tea.Model
+	jq, cmd = m.jq.Update(message)
+	if panel, ok := jq.(*jqPanel); ok {
+		m.jq = panel
+	}
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
