@@ -27,7 +27,7 @@ Experimental support for custom queries is baked into the cobra functionality; b
 
 Custom queries are read via HCL. The `template` parameter is a Go template, the template values correspond to the args which are processed in order against the input of the command.
 
-A simple query is included in `custom_queries`.
+A simple custom query could be defined as:
 
     # The label is the name and usage message used for the cobra command.
     query "indexes-for-table <table>" {
@@ -37,7 +37,7 @@ A simple query is included in `custom_queries`.
         args = [ "Table" ]
     }
 
-A more complex query would probably use heredoc to write the template parameter across multiple lines.
+For multiline queries heredoc can be used:
 
     query "indexes-for-table <table>" {
         description = "Returns a list of indexes for the provided table name."

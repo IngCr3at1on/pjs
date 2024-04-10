@@ -96,8 +96,9 @@ func (qs *queries) loadCustomQuery(filename string, byt []byte, transposeImpl fu
 			Long:          q.Description,
 			SilenceErrors: true,
 			PreRunE: func(cmd *cobra.Command, args []string) error {
-				if len(args) != len(q.Args) {
-					return cmd.Usage()
+				if err := cobra.ExactArgs(len(q.Args))(cmd, args); err != nil {
+					cmd.Usage()
+					return err
 				}
 				return nil
 			},

@@ -11,13 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// Receiver is a value receiver when reading postgres data.
-type Receiver struct {
-	Name        string
-	DataTypeOID uint32
-	Val         interface{}
-}
-
 // Transpose reads arbitrary data out of pgx.Rows.
 func Transpose(
 	ctx context.Context,
