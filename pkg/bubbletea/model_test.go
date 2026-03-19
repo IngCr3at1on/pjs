@@ -1,6 +1,7 @@
 package bubbletea
 
 import (
+	"context"
 	"testing"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -10,7 +11,7 @@ import (
 
 func TestModel_Update(t *testing.T) {
 	t.Run("focus change", func(tt *testing.T) {
-		m := New()
+		m := New(context.Background(), nil, false)
 		var tm tea.Model = m
 
 		cmd := tm.Init()

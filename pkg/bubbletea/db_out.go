@@ -13,6 +13,7 @@ type (
 	dbOut struct {
 		showTypes   bool
 		placeholder string
+		content     string
 		*bubbles.OutputPane
 		callback Callback
 	}
@@ -24,6 +25,7 @@ func newDbOut(placeholder string, showTypes bool, dataCallback Callback) dbOut {
 	return dbOut{
 		showTypes:   showTypes,
 		placeholder: placeholder,
+		content:     placeholder,
 		OutputPane:  bubbles.NewOutputPane(util.HalfWidth, dbOutHeight, placeholder),
 		callback:    dataCallback,
 	}
@@ -35,18 +37,24 @@ func newDbOut(placeholder string, showTypes bool, dataCallback Callback) dbOut {
 //	return p, cmd
 //}
 
-func (p dbOut) transpose(receivers []pjs.Receiver) error {
+func (p *dbOut) transpose(receivers []pjs.Receiver) error {
 	m, str, err := pgjq.Convert(receivers, p.showTypes)
 	if err != nil {
 		return err
 	}
 
-	p.SetContent(str)
+	if p.content == "" || p.content == p.placeholder {
+		p.content = str
+	} else {
+		p.content += "\n" + str
+	}
+	p.SetContent(p.content)
 	p.callback(m)
 	return nil
 }
 
-func (p dbOut) reset() {
+func (p *dbOut) reset() {
+	p.content = p.placeholder
 	p.SetContent(p.placeholder)
 }
 

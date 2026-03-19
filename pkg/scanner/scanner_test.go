@@ -65,6 +65,18 @@ end $$;`,
 end $$;`,
 			},
 		},
+		"do-block-followed-by-select-no-empty-semicolon-token": {
+			sql: `do $$
+	SELECT * FROM FOOBAR;
+end $$;
+SELECT * FROM BARFOO;`,
+			expected: []string{
+				`do $$
+	SELECT * FROM FOOBAR;
+end $$;`,
+				`SELECT * FROM BARFOO;`,
+			},
+		},
 	} {
 		t.Run(name, func(tt *testing.T) {
 			batch, err := scanner.ScanQueries(tc.sql)

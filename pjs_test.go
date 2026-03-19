@@ -25,13 +25,23 @@ func initTable(ctx context.Context, tb testing.TB, pool *pgxpool.Pool) {
 }
 
 func initPool(ctx context.Context, tb testing.TB) *pgxpool.Pool {
+	tb.Helper()
+
 	dsn := env.ParseAlternateSettings()
+	if dsn == "" {
+		tb.Skip("integration test: set POSTGRES_* env vars to run")
+	}
 
 	pc, err := pgxpool.ParseConfig(dsn)
 	require.NoError(tb, err)
 
 	pool, err := pgxpool.NewWithConfig(ctx, pc)
 	require.NoError(tb, err)
+
+	if err := pool.Ping(ctx); err != nil {
+		pool.Close()
+		tb.Skipf("integration test: postgres unavailable (%v)", err)
+	}
 
 	initTable(ctx, tb, pool)
 	return pool
