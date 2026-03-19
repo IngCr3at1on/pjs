@@ -21,7 +21,7 @@ func ScanQueries(sql string) (pgx.Batch, error) {
 	for scanner.Scan() {
 		query := strings.TrimSpace(scanner.Text())
 		if query == `` {
-			break
+			continue
 		}
 
 		queries = append(queries, query)
@@ -47,7 +47,17 @@ func scanPG(data []byte, atEOF bool) (int, []byte, error) {
 	}
 
 	if strings.HasPrefix(string(data), funcStart) && strings.Contains(string(data), funcEnd) {
-		data = data[:strings.Index(string(data), funcEnd)+len(funcEnd)]
+		end := strings.Index(string(data), funcEnd) + len(funcEnd)
+		if end < len(data) {
+			rest := string(data[end:])
+			offset := strings.IndexFunc(rest, func(r rune) bool {
+				return r != ' ' && r != '\n' && r != '\r' && r != '\t'
+			})
+			if offset >= 0 && rest[offset] == ';' {
+				end += offset + 1
+			}
+		}
+		data = data[:end]
 		return len(data), data, nil
 	}
 
